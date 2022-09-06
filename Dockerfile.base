@@ -1,0 +1,75 @@
+FROM nvidia/cuda:11.4.2-cudnn8-devel-ubuntu20.04
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN apt update && \
+    apt install autoconf automake libtool curl wget make cmake g++ unzip git -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Protobuf
+ENV PROTOBUF 3.7.0
+ENV PROTOBUF_URL https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOBUF}/protobuf-all-${PROTOBUF}.zip
+
+RUN cd /opt && \
+    wget "${PROTOBUF_URL}" -O protobuf.zip && \
+    unzip protobuf.zip && \
+    cd protobuf* && \
+    ./autogen.sh && \
+    ./configure  --prefix=/usr/local && \
+    make -j 15 && \
+    make install && \
+    ldconfig
+
+# Gtest
+ENV GTEST 1.10.0
+ENV GTEST_URL https://github.com/google/googletest/archive/refs/tags/release-${GTEST}.zip
+
+RUN cd /opt && \
+    wget "${GTEST_URL}" -O gtest.zip && \
+    unzip gtest.zip && \
+    cd googletest-release-${GTEST} && \
+    cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=/usr/local/ . && \
+    make -j 15 && \
+    cp -r googletest/include/gtest /usr/local/include && \
+    cp lib/*.so /usr/local/lib
+
+# OPENCV
+ENV OPENCV 4.5.4
+ENV OPENCV_URL https://github.com/opencv/opencv/archive/refs/tags/${OPENCV}.zip
+ENV OPENCV_CONTRIB_URL https://github.com/opencv/opencv_contrib/archive/refs/tags/${OPENCV}.zip
+
+RUN cd /opt && \
+    wget "${OPENCV_CONTRIB_URL}" -O opencv_contrib.zip && \
+    unzip opencv_contrib.zip && \
+    wget "${OPENCV_URL}" -O opencv.zip && \
+    unzip opencv.zip && \
+    mkdir -p opencv-${OPENCV}/build && cd opencv-${OPENCV}/build && \
+    cmake -D CMAKE_LIBRARY_PATH=/usr/local/cuda/lib64/stubs \
+          -D BUILD_OPENEXR=OFF WITH_OPENEXR=OFF \
+          -D WITH_CUDA=ON \
+          -D ENABLE_PRECOMPILED_HEADERS=OFF \
+          -D CUDA_ARCH_BIN="6.1" \
+          -D CUDA_ARCH_PTX="" \
+          -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib-${OPENCV}/modules \
+          -D WITH_GSTREAMER=ON \
+          -D WITH_LIBV4L=ON \
+          -D BUILD_opencv_python2=ON \
+          -D BUILD_opencv_python3=ON \
+          -D BUILD_TESTS=OFF \
+          -D BUILD_PERF_TESTS=OFF \
+          -D BUILD_EXAMPLES=OFF \
+          -D CMAKE_BUILD_TYPE=RELEASE \
+          -D CMAKE_INSTALL_PREFIX=/usr/local/ .. && \
+    make -j15 && \
+    make install
+
+# EIGEN
+ENV EIGEN 3.3.9
+ENV EIGEN_URL https://gitlab.com/libeigen/eigen/-/archive/${EIGEN}/eigen-${EIGEN}.zip
+
+RUN cd /opt && \
+    wget "${EIGEN_URL}" -O eigen-${EIGEN}.zip && \
+    unzip eigen-${EIGEN}.zip && \
+    mkdir -p eigen-${EIGEN}/build && cd eigen-${EIGEN}/build && \
+    cmake -DCMAKE_INSTALL_PREFIX=/usr/local/ .. && \
+    make -j 15 install 
