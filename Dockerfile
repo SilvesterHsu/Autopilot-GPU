@@ -143,7 +143,7 @@ RUN /opt/third_party/blade/install && \
     apt update && apt install python2.7 scons gdb git -y && \
     ln -s /usr/bin/python2.7 /usr/bin/python2 && \
     ln -s /usr/bin/python2.7 /usr/bin/python && \
-    sed -i '1s/#! \/usr\/bin\/python3/#! \/usr\/bin\/python2.7/' /usr/bin/scons && \
+    sed -i 's/python3/python2/g' /usr/bin/scons && \
     wget https://bootstrap.pypa.io/pip/2.7/get-pip.py -O /tmp/get-pip.py && \
     python2 /tmp/get-pip.py && pip install cpplint
 
@@ -154,8 +154,15 @@ RUN apt update && apt install zsh openssh-server vim curl  -y && \
     mkdir ~/.ssh && touch ~/.ssh/authorized_keys && \
     chmod 700 ~/.ssh && chmod 600  ~/.ssh/authorized_keys
 
+RUN ln -s /usr/local/include/opencv4/opencv2 /usr/local/include/opencv2 && \
+    ln -s /usr/local/include/pcl-1.12/pcl /usr/local/include/pcl && \
+    ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen && \
+    ln -s /usr/local/include/eigen3/unsupported /usr/local/include/unsupported && \
+    echo '/usr/local/cuda/lib64' >> /etc/ld.so.conf && \
+    ldconfig
+
 ENV PATH $PATH:/usr/bin:/usr/sbin:/bin:/sbin:/usr/local/cuda/bin:/usr/local/bin:/root/bin
 ENV LD_LIBRARY_PATH /usr/local/lib:/usr/local/cuda/lib64
 ENV LIBRARY_PATH /usr/local/cuda/lib64:/usr/local/cuda/lib64/stubs:/usr/local/lib
-ENV C_INCLUDE_PATH /usr/include/x86_64-linux-gnu:/usr/local/include:/usr/local/cuda/include:/usr/local/include/opencv4:/usr/local/include/eigen3:/usr/local/include/pcl-1.11
-ENV CPLUS_INCLUDE_PATH /usr/include/x86_64-linux-gnu:/usr/local/include:/usr/local/cuda/include:/usr/local/include/opencv4:/usr/local/include/eigen3:/usr/local/include/pcl-1.11
+ENV C_INCLUDE_PATH /usr/include/x86_64-linux-gnu:/usr/local/include:/usr/local/cuda/include
+ENV CPLUS_INCLUDE_PATH /usr/include/x86_64-linux-gnu:/usr/local/include:/usr/local/cuda/include
