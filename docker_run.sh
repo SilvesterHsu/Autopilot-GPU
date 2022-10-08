@@ -1,10 +1,13 @@
 #!/bin/bash
 set -e
 
-CUDA_DEV="develop_cuda_${USER}"
+# PROJECT_PATH=$(cd "$(dirname "$0")";pwd)
+PROJECT_PATH=$(pwd)
+PROJECT_NAME="${PROJECT_PATH##*/}"
+PROJECT_DEV="develop_${PROJECT_NAME}_${USER}"
 
 if [ "$USER" != "root" ];then
-  docker exec $CUDA_DEV bash -c "echo '$USER ALL=NOPASSWD: ALL' >> /etc/sudoers"
+  docker exec $PROJECT_DEV bash -c "echo '$USER ALL=NOPASSWD: ALL' >> /etc/sudoers"
 fi
 
-docker exec -it  $CUDA_DEV /bin/bash -c "source /root/.profile && cd /root && /bin/zsh"
+docker exec -it  $PROJECT_DEV /bin/bash -c "source /root/.profile && cd /workspace && /bin/zsh"
