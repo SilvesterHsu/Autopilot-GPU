@@ -154,6 +154,35 @@ RUN apt update && apt install zsh openssh-server vim curl  -y && \
     mkdir ~/.ssh && touch ~/.ssh/authorized_keys && \
     chmod 700 ~/.ssh && chmod 600  ~/.ssh/authorized_keys
 
+# TENSORRT
+ENV TENSORRT_VERSION ubuntu2004-cuda11.6-trt8.4.1.5-ga-20220604
+ENV TENSORRT_URL http://ftp.zelostech.cloud/nvidia/nv-tensorrt-repo-${TENSORRT_VERSION}_1-1_amd64.deb
+
+RUN apt update && \
+    apt install curl -y && \
+    rm -rf /var/lib/apt/lists/* && \
+    curl "${TENSORRT_URL}" -o tensorrt.deb && \
+    dpkg -i tensorrt.deb && \
+    apt-key add /var/nv-tensorrt-repo-${TENSORRT_VERSION}/*.pub && \
+    apt update && \
+    rm -rf /var/lib/apt/lists/*nvidia* && \
+    apt install -y tensorrt && \
+    rm -f tensorrt.deb && \
+    rm -rf /var/lib/apt/lists/*
+
+# PYTORCH
+ENV TORCH_VERSION 1.9.1
+ENV TORCHVISION_VERSION 0.10.1
+
+RUN apt update && \
+    apt install -y vim curl python3 python3-pip libboost-filesystem-dev && \
+    pip3 install --upgrade pip && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN pip3 install --no-cache-dir torch==${TORCH_VERSION}+cu111 \
+    torchvision==${TORCHVISION_VERSION}+cu111 -f https://download.pytorch.org/whl/torch_stable.html && \
+    pip3 install --no-cache-dir numpy
+
 RUN ln -s /usr/local/include/opencv4/opencv2 /usr/local/include/opencv2 && \
     ln -s /usr/local/include/pcl-1.12/pcl /usr/local/include/pcl && \
     ln -s /usr/local/include/eigen3/Eigen /usr/local/include/Eigen && \
