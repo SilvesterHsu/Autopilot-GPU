@@ -137,6 +137,10 @@ COPY --from=build /usr/local/include /usr/local/include
 COPY --from=build /usr/local/lib /usr/local/lib
 COPY --from=build /usr/local/bin /usr/local/bin
 
+RUN apt update && \
+    apt install curl wget -y && \
+    rm -rf /var/lib/apt/lists/*
+
 # BLADE
 ADD third_party /opt/third_party
 RUN /opt/third_party/blade/install && \
